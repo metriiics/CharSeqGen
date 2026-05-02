@@ -31,5 +31,5 @@ print(f"Total Lenght: {len(allText)}")
 print(f"Unique Characters: {len(setText)}")
 print(f"Word Count: {len(wordText)}")
 
-with open(booksPath / "allTxt", "w", encoding="utf-8") as file:
+with open(booksPath / "allTxt.txt", "w", encoding="utf-8") as file:
     file.write(allText)
