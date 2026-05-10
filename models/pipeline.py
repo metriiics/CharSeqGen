@@ -1,0 +1,101 @@
+import os
+import sys
+from pathlib import Path
+import numpy as np
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.CharTokenize import CharTokenizer
+
+import torch 
+from torch.utils.data import Dataset, DataLoader
+import torch.nn as nn
+import torch.optim as op
+from torch.distributions.categorical import Categorical
+
+class SequenceDataset(Dataset):
+    def __init__(self, text_chunks):
+        self.text_chunks = text_chunks
+
+    def __len__(self):
+        return len(self.text_chunks)
+
+    def __getitem__(self, index):
+        text_chunk = self.text_chunks[index]
+        return text_chunk[:-1].long(), text_chunk[1:].long()
+    
+class SeqModel(nn.Module):
+    def __init__(self, vocab_size, embed_dim, rnn_hidden_size):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.rnn_hidden_size = rnn_hidden_size
+        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, vocab_size)
+        self.fc = nn.Linear(rnn_hidden_size, vocab_size)
+
+    def forward(self, x, hidden, cell):
+        out = self.embedding(x).unsqueeze(1)
+        out, (hidden, cell) = self.rnn(out, hidden, cell)
+        out = self.fc(out).reshape(out.size(0), -1)
+        return out, hidden, cell
+
+    def init_hidden(self):
+        hidden = torch.zeros(1, batch_size, self.rnn_hidden_size)
+        cell = torch.zeros(1, batch_size, self.rnn_hidden_size)
+        return hidden.to(DEVICE), cell.to(DEVICE)
+
+DEVICE = torch.device('cuda')
+torch.manual_seed(1)
+
+path = Path.cwd() / 'pre-book/BookInText/scaled_text.txt'
+
+with open(path, "r", encoding="utf-8") as file:
+    text = file.read()
+
+tokenizer = CharTokenizer()
+tokenizer.fit(text)
+
+seq_length = 128
+chunk_size = seq_length + 1
+
+tokenized_text = tokenizer.encode(text)
+text_chunks = [tokenized_text[i: i + text_chunks]
+               for i in range(len(tokenized_text) - chunk_size + 1)
+]
+
+seq_dataset = SequenceDataset(torch.tensor(text_chunks))
+
+batch_size = 16
+
+seq_dl = DataLoader(seq_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+
+vocab_size = tokenizer.get_vocab_size
+embed_dim = 256
+rnn_hidden_size = 512
+
+model = SeqModel(vocab_size, embed_dim, rnn_hidden_size)
+model = model.to(DEVICE)
+
+loss_fn = nn.CrossEntropyLoss()
+optimizer = op.Adam(model.parameters(), lr=0.005)
+
+epochs = 10000
+history_losses = []
+
+for epoch in range(epochs):
+    hidden, cell = model.init_hidden(batch_size)
+    seq_batch, target_batch = next(iter(seq_dl))
+    seq_batch = seq_batch.to(DEVICE)
+    target_batch = target_batch.to(DEVICE)
+
+    optimizer.zero_grad()
+    loss = 0
+
+    for char in range(seq_length):
+        pred, hidden, cell = model(seq_batch[:, char], hidden, cell)
+        loss += loss_fn(pred, hidden, cell)
+
+    loss.backward()
+    optimizer.step()
+    loss = loss.item() / seq_length
+    history_losses.append(loss)
+    if epoch % 100 == 0:
+        print(f"Epoch {epoch} loss: {round(loss, 3)}")
