@@ -10,7 +10,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.optim as op
-from torch.distributions.categorical import Categorical
 
 class SequenceDataset(Dataset):
     def __init__(self, text_chunks):
@@ -80,6 +79,8 @@ optimizer = op.Adam(model.parameters(), lr=0.005)
 epochs = 10000
 history_losses = []
 
+scaler = torch.amp.GradScaler("cuda")
+
 for epoch in range(epochs):
     hidden, cell = model.init_hidden(batch_size)
     seq_batch, target_batch = next(iter(seq_dl))
@@ -89,12 +90,16 @@ for epoch in range(epochs):
     optimizer.zero_grad()
     loss = 0
 
-    for char in range(seq_length):
-        pred, hidden, cell = model(seq_batch[:, char], hidden, cell)
-        loss += loss_fn(pred, hidden, cell)
+    with torch.autocast(device_type='cuda', dtype=torch.float16):
+        for char in range(seq_length):
+            pred, hidden, cell = model(seq_batch[:, char], hidden, cell)
+            loss += loss_fn(pred, hidden, cell)
 
-    loss.backward()
-    optimizer.step()
+    scaler.scale(loss).backward()
+    scaler.step(optimizer=optimizer)
+
+    scaler.update()
+
     loss = loss.item() / seq_length
     history_losses.append(loss)
     if epoch % 100 == 0:
