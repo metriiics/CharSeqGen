@@ -11,14 +11,16 @@ class CharTokenizer:
 
     def fit(self, corpus: str) -> Self:
         self._CharSet = set(corpus)
-        self._CharSetSorted = sorted(self._CharSet)
+        self._CharSetSorted = ['<unk>'] + sorted(self._CharSet)
 
-        self._char2int = {ch:i for i, ch in enumerate(self._CharSetSorted)}
+        self._char2int = {ch:i for i, ch in enumerate(self._CharSetSorted[1:], start=1)}
+        self._char2int['<unk>'] = 0
         self._CharList = np.array(self._CharSetSorted)
         return self
 
     def encode(self, doc: str) -> npt.NDArray[np.int32]:
-        tokens = np.array([self._char2int[ch] for ch in doc], dtype=np.int32)
+        tokens = np.array([self._char2int[ch] if ch in self._CharSetSorted 
+            else self._char2int['<unk>'] for ch in doc], dtype=np.int32)
         return tokens
 
     def decode(self, tokens: npt.NDArray[np.int32]) -> str:
