@@ -10,37 +10,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.optim as op
-
-class SequenceDataset(Dataset):
-    def __init__(self, text_chunks):
-        self.text_chunks = text_chunks
-
-    def __len__(self):
-        return len(self.text_chunks)
-
-    def __getitem__(self, index):
-        text_chunk = self.text_chunks[index]
-        return text_chunk[:-1].long(), text_chunk[1:].long()
-    
-class SeqModel(nn.Module):
-    def __init__(self, vocab_size, embed_dim, rnn_hidden_size):
-        super().__init__()
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
-        self.rnn_hidden_size = rnn_hidden_size
-        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, vocab_size)
-        self.fc = nn.Linear(rnn_hidden_size, vocab_size)
-
-    def forward(self, x, hidden, cell):
-        out = self.embedding(x).unsqueeze(1)
-        out, (hidden, cell) = self.rnn(out, hidden, cell)
-        out = self.fc(out).reshape(out.size(0), -1)
-        return out, hidden, cell
-
-    def init_hidden(self):
-        hidden = torch.zeros(1, batch_size, self.rnn_hidden_size)
-        cell = torch.zeros(1, batch_size, self.rnn_hidden_size)
-        return hidden.to(DEVICE), cell.to(DEVICE)
-
+ 
 DEVICE = torch.device('cuda')
 torch.manual_seed(1)
 
@@ -63,11 +33,41 @@ text_chunks = [tokenized_text[i: i + text_chunks]
                for i in range(len(tokenized_text) - chunk_size + 1)
 ]
 
+class SequenceDataset(Dataset):
+    def __init__(self, text_chunks):
+        self.text_chunks = text_chunks
+
+    def __len__(self):
+        return len(self.text_chunks)
+
+    def __getitem__(self, index):
+        text_chunk = self.text_chunks[index]
+        return text_chunk[:-1].long(), text_chunk[1:].long()
+
 seq_dataset = SequenceDataset(torch.tensor(text_chunks))
 
 batch_size = 16
 
 seq_dl = DataLoader(seq_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+
+class SeqModel(nn.Module):
+    def __init__(self, vocab_size, embed_dim, rnn_hidden_size):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.rnn_hidden_size = rnn_hidden_size
+        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, vocab_size)
+        self.fc = nn.Linear(rnn_hidden_size, vocab_size)
+
+    def forward(self, x, hidden, cell):
+        out = self.embedding(x).unsqueeze(1)
+        out, (hidden, cell) = self.rnn(out, hidden, cell)
+        out = self.fc(out).reshape(out.size(0), -1)
+        return out, hidden, cell
+
+    def init_hidden(self):
+        hidden = torch.zeros(1, batch_size, self.rnn_hidden_size)
+        cell = torch.zeros(1, batch_size, self.rnn_hidden_size)
+        return hidden.to(DEVICE), cell.to(DEVICE)
 
 vocab_size = tokenizer.get_vocab_size
 embed_dim = 256
