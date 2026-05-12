@@ -1,6 +1,9 @@
 from typing import Self, Set, Dict, List
+from pathlib import Path
 import numpy as np
 import numpy.typing as npt 
+import json
+import os
 
 class CharTokenizer:
     def __init__(self) -> None:
@@ -38,3 +41,20 @@ class CharTokenizer:
     @property
     def get_vocab_from_id(self) -> Dict[str, int]:
         return self._char2int
+    
+    def save(self) -> None:
+        with open(os.path.join(Path.cwd() / "models/tokenConfig/vocab.json"), "w", encoding="utf-8") as file:
+            json.dump(self._char2int, file, ensure_ascii=False, indent=2)
+
+        np.save(os.path.join(Path.cwd() / "models/tokenConfig/vocab.npy"), self._CharList)
+
+    @classmethod
+    def load(cls) -> Self:
+        tokenizer = cls()
+
+        with open(os.path.join(Path.cwd() / "models/tokenConfig/vocab.json"), "r", encoding="utf-8") as file:
+            tokenizer._char2int = json.load(file)
+
+        tokenizer._CharList = np.load(os.path.join(Path.cwd() / "models/tokenConfig/vocab.npy"), allow_pickle=True)
+        tokenizer._CharSetSorted = set(tokenizer._CharList.tolist())
+        return tokenizer

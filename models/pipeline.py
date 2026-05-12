@@ -45,6 +45,7 @@ DEVICE = torch.device('cuda')
 torch.manual_seed(1)
 
 path = Path.cwd() / 'pre-book/BookInText/scaled_text.txt'
+save_dir = "models"
 
 with open(path, "r", encoding="utf-8") as file:
     text = file.read()
@@ -104,3 +105,5 @@ for epoch in range(epochs):
     history_losses.append(loss)
     if epoch % 250 == 0:
         print(f"Epoch {epoch} loss: {round(loss, 3)}")
+
+torch.save(model, os.path.join(save_dir, "model.pth"))
