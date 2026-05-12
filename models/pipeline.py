@@ -45,13 +45,15 @@ DEVICE = torch.device('cuda')
 torch.manual_seed(1)
 
 path = Path.cwd() / 'pre-book/BookInText/scaled_text.txt'
-save_dir = "models"
+path_token = Path.cwd() / "models/tokenConfig"
 
 with open(path, "r", encoding="utf-8") as file:
     text = file.read()
 
 tokenizer = CharTokenizer()
 tokenizer.fit(text)
+
+tokenizer.save(path_token)
 
 seq_length = 128
 chunk_size = seq_length + 1
@@ -106,4 +108,4 @@ for epoch in range(epochs):
     if epoch % 250 == 0:
         print(f"Epoch {epoch} loss: {round(loss, 3)}")
 
-torch.save(model, os.path.join(save_dir, "model.pth"))
+torch.save(model, os.path.join("models/weight", "model.pth"))

@@ -42,19 +42,19 @@ class CharTokenizer:
     def get_vocab_from_id(self) -> Dict[str, int]:
         return self._char2int
     
-    def save(self) -> None:
-        with open(os.path.join(Path.cwd() / "models/tokenConfig/vocab.json"), "w", encoding="utf-8") as file:
+    def save(self, path) -> None:
+        with open(os.path.join(path / "vocab.json"), "w", encoding="utf-8") as file:
             json.dump(self._char2int, file, ensure_ascii=False, indent=2)
 
-        np.save(os.path.join(Path.cwd() / "models/tokenConfig/vocab.npy"), self._CharList)
+        np.save(os.path.join(path / "vocab.npy"), self._CharList)
 
     @classmethod
-    def load(cls) -> Self:
+    def load(cls, path: str) -> Self:
         tokenizer = cls()
 
-        with open(os.path.join(Path.cwd() / "models/tokenConfig/vocab.json"), "r", encoding="utf-8") as file:
+        with open(os.path.join(path / "vocab.json"), "r", encoding="utf-8") as file:
             tokenizer._char2int = json.load(file)
 
-        tokenizer._CharList = np.load(os.path.join(Path.cwd() / "models/tokenConfig/vocab.npy"), allow_pickle=True)
+        tokenizer._CharList = np.load(os.path.join(path / "vocab.npy"), allow_pickle=True)
         tokenizer._CharSetSorted = set(tokenizer._CharList.tolist())
         return tokenizer
