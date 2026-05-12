@@ -102,5 +102,5 @@ for epoch in range(epochs):
 
     loss = loss.item() / seq_length
     history_losses.append(loss)
-    if epoch % 100 == 0:
+    if epoch % 250 == 0:
         print(f"Epoch {epoch} loss: {round(loss, 3)}")
