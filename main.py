@@ -1,13 +1,15 @@
-from pathlib import Path
+import os
+import torch
+from models.gen import generate
 
-textPath = Path(__file__).parent / 'pre-book/BookInText/allTxt'
+from models.pipeline import SeqModel
 
-with open(textPath, "r", encoding="utf-8") as file:
-    text = file.read()
+import sys
+sys.modules['__main__'].SeqModel = SeqModel
 
-setText = set(text)
-wordText = text.split()
+model = torch.load(os.path.join("models/weight/", "model.pth"), weights_only=False)
+model.to('cpu')
 
-print(f"Total Lenght: {len(text)}")
-print(f"Unique Characters: {len(setText)}")
-print(f"Word Count: {len(wordText)}")
+question = "Привет, как твои дела?"
+
+print(generate(model, question))

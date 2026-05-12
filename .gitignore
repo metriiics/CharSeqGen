@@ -2,4 +2,5 @@ venv/
 pre-book/BookInText/
 .ipynb_checkpoints/
 utils/__pycache__
+models/__pycache__
 .vscode/
