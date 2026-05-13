@@ -10,6 +10,6 @@ sys.modules['__main__'].SeqModel = SeqModel
 model = torch.load(os.path.join("models/weight/", "model.pth"), weights_only=False)
 model.to('cpu')
 
-question = "Привет, как твои дела?"
+question = "наркотики"
 
 print(generate(model, question))
