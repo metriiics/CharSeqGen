@@ -1,8 +1,10 @@
 import os
+import sys
 import torch
 from torch.distributions.categorical import Categorical
 from pathlib import Path
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.CharTokenize import CharTokenizer
 
 path_token = Path.cwd() / "models/tokenConfig"
@@ -22,7 +24,7 @@ def generate(model, query: str,
     cell = cell.to('cpu')
 
     for char in range(len(query) - 1):
-        _, hidden, cell = model(encoded_input[:, char].view(1))
+        _, hidden, cell = model(encoded_input[:, char].view(1), hidden, cell)
 
     last_char = encoded_input[:, -1]
     for i in range(len_gen):

@@ -12,6 +12,8 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.optim as op
 
+DEVICE = torch.device('cuda')
+
 class SequenceDataset(Dataset):
     def __init__(self, text_chunks):
         self.text_chunks = text_chunks
@@ -71,13 +73,12 @@ def train(datLoader, device,
 
         loss = loss.item() / seq_length
         history_losses.append(loss)
-        if epoch % 250 == 0:
+        if epoch % 500 == 0:
             print(f"Epoch {epoch} loss: {round(loss, 3)}")
     create_figure_loss(history=history_losses)
     torch.save(model, os.path.join("models/weight", "model.pth"))
 
 if __name__ == "__main__":
-    DEVICE = torch.device('cuda')
     torch.manual_seed(1)
 
     path = Path.cwd() / 'pre-book/BookInText/scaled_text.txt'
