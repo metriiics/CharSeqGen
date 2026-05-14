@@ -24,18 +24,20 @@ class SequenceDataset(Dataset):
     def __getitem__(self, index):
         text_chunk = self.text_chunks[index]
         return text_chunk[:-1].long(), text_chunk[1:].long()
-    
+
 class SeqModel(nn.Module):
-    def __init__(self, vocab_size, embed_dim, rnn_hidden_size):
+    def __init__(self, vocab_size, embed_dim, rnn_hidden_size, layers, dropout):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.rnn_hidden_size = rnn_hidden_size
-        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, batch_first=True)
+        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, num_layers=layers, dropout=dropout, batch_first=True)
+        self.dropout = nn.Dropout(0.4)
         self.fc = nn.Linear(rnn_hidden_size, vocab_size)
 
     def forward(self, x, hidden, cell):
         out = self.embedding(x).unsqueeze(1)
         out, (hidden, cell) = self.rnn(out, (hidden, cell))
+        out = self.dropout(out)
         out = self.fc(out).reshape(out.size(0), -1)
         return out, hidden, cell
 
@@ -109,8 +111,10 @@ if __name__ == "__main__":
     vocab_size = tokenizer.get_vocab_size
     embed_dim = 256
     rnn_hidden_size = 512
+    layers = 3
+    drop = 0.5
 
-    model = SeqModel(vocab_size, embed_dim, rnn_hidden_size)
+    model = SeqModel(vocab_size, embed_dim, rnn_hidden_size, layers, drop)
     model = model.to(DEVICE)
 
     loss_fn = nn.CrossEntropyLoss()

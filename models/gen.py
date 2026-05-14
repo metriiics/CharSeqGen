@@ -12,7 +12,7 @@ tok = CharTokenizer().load(path_token)
 
 def generate(model, query: str, 
            len_gen: int = 500,
-           scale_factor: int = 1.0) -> str:
+           scale_factor: int = 0.5) -> str:
     encoded_input = torch.tensor(tok.encode(query))
     encoded_input = torch.reshape(encoded_input, (1, -1))
 
