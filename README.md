@@ -36,7 +36,7 @@ flowchart TD
 | 4 | 1.185 |
 | 5 | 1.172 |
 | 6 | 1.163 |
-```
+
 
 <figure>
 <img src="/figure/train_loss.png" alt="figure training loss">
