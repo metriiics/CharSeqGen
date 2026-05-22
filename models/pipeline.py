@@ -26,57 +26,53 @@ class SequenceDataset(Dataset):
         return text_chunk[:-1].long(), text_chunk[1:].long()
 
 class SeqModel(nn.Module):
-    def __init__(self, vocab_size, embed_dim, rnn_hidden_size, layers, dropout):
+    def __init__(self, vocab_size, embed_dim, rnn_hidden_size, layers):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.rnn_hidden_size = rnn_hidden_size
-        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, num_layers=layers, dropout=dropout, batch_first=True)
-        self.dropout = nn.Dropout(0.4)
+        self.rnn = nn.LSTM(embed_dim, rnn_hidden_size, num_layers=layers, batch_first=True)
+        self.dropout = nn.Dropout(0.5)
         self.fc = nn.Linear(rnn_hidden_size, vocab_size)
 
-    def forward(self, x, hidden, cell):
-        out = self.embedding(x).unsqueeze(1)
-        out, (hidden, cell) = self.rnn(out, (hidden, cell))
+    def forward(self, x, hidden=None):
+        out = self.embedding(x)
+        out, hidden = self.rnn(out, hidden)
         out = self.dropout(out)
-        out = self.fc(out).reshape(out.size(0), -1)
-        return out, hidden, cell
-
-    def init_hidden(self, batch_size):
-        hidden = torch.zeros(1, batch_size, self.rnn_hidden_size)
-        cell = torch.zeros(1, batch_size, self.rnn_hidden_size)
-        return hidden.to(DEVICE), cell.to(DEVICE)
+        out = self.fc(out)
+        return out, hidden
 
 def train(datLoader, device, 
         epochs, model, 
-        loss_fn, optim,
-        batch_size, seq_length):
+        loss_fn, optim):
     history_losses = []
+
+    model.train()
 
     scaler = torch.amp.GradScaler("cuda")
 
     for epoch in range(epochs):
-        hidden, cell = model.init_hidden(batch_size)
-        seq_batch, target_batch = next(iter(datLoader))
-        seq_batch = seq_batch.to(device)
-        target_batch = target_batch.to(device)
+        epoch_loss = 0
+        for seq_batch, target_batch in datLoader:
+            seq_batch = seq_batch.to(device)
+            target_batch = target_batch.to(device)
 
-        optim.zero_grad()
-        loss = 0
+            optim.zero_grad()
 
-        with torch.autocast(device_type='cuda', dtype=torch.float16):
-            for char in range(seq_length):
-                pred, hidden, cell = model(seq_batch[:, char], hidden, cell)
-                loss += loss_fn(pred, target_batch[:, char])
+            with torch.autocast(device_type='cuda', dtype=torch.float16):
+                pred, _ = model(seq_batch)
+                loss = loss_fn(pred.reshape(-1, pred.size(-1)), 
+                    target_batch.reshape(-1))
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer=optim)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer=optim)
 
-        scaler.update()
+            scaler.update()
 
-        loss = loss.item() / seq_length
-        history_losses.append(loss)
-        if epoch % 500 == 0:
-            print(f"Epoch {epoch} loss: {round(loss, 3)}")
+            epoch_loss += loss.item()
+            
+        epoch_loss /= len(datLoader)
+        history_losses.append(epoch_loss)
+        print(f"Epoch {epoch} loss: {round(epoch_loss, 3)}")
     create_figure_loss(history=history_losses)
     torch.save(model, os.path.join("models/weight", "model.pth"))
 
@@ -94,34 +90,34 @@ if __name__ == "__main__":
 
     tokenizer.save(path_token)
 
-    seq_length = 128
+    seq_length = 64
     chunk_size = seq_length + 1
 
     tokenized_text = tokenizer.encode(text)
     text_chunks = [tokenized_text[i: i + chunk_size]
                 for i in range(len(tokenized_text) - chunk_size + 1)
     ]
+    text_chunks = text_chunks[2312890:3531240]
 
     seq_dataset = SequenceDataset(torch.tensor(text_chunks))
 
-    batch_size = 16
+    batch_size = 128
 
     seq_dl = DataLoader(seq_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     vocab_size = tokenizer.get_vocab_size
     embed_dim = 256
     rnn_hidden_size = 512
-    layers = 3
+    layers = 1
     drop = 0.5
 
-    model = SeqModel(vocab_size, embed_dim, rnn_hidden_size, layers, drop)
+    model = SeqModel(vocab_size, embed_dim, rnn_hidden_size, layers)
     model = model.to(DEVICE)
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = op.Adam(model.parameters(), lr=0.005)
+    optimizer = op.Adam(model.parameters(), lr=0.001)
 
-    epochs = 8000
+    epochs = 7
     train(seq_dl, DEVICE, 
         epochs, model, 
-        loss_fn, optimizer, 
-        batch_size, seq_length)
+        loss_fn, optimizer)
