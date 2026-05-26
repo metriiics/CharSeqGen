@@ -14,7 +14,7 @@ The project uses the following books by the author:
 The dataset contains $6.588.976$ examples. The training data for the model is prepared using a shifting (offset) scheme. The text is split into fragments of 65 characters: the first 64 characters form the input sequence, and the last 64 characters form the target variable. Thus, the fragments are shifted relative to each other, as shown in the figure below.
 
 <figure>
-<img src="/figure/InOut.jpg" alt="figure example target input">
+<img src="/figure/InOut.png" alt="figure example target input">
 </figure>
 
 ### Architecture
