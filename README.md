@@ -61,16 +61,20 @@ As well as the training graph.
 <img src="/figure/train_loss.png" alt="figure training loss">
 </figure>
 
+We use a text generation algorithm. The model receives the current token and computes logits for all possible next tokens. These logits are passed to Categorical, which converts them into a probability distribution using softmax. Then, the next token is randomly sampled from this distribution according to its probability. After that, the selected token is fed back into the model to generate the next character.
 
 <div align="center">
 
 | № | temp | Input | Output |
 |---|---|---|---|
-| 1 | ~0 | Любовь это | Любовь это веришь. Он мне просто совершилось пред тягимимость и сообразить об избу. |
-| 2 | ~1.2 | Любовь это веришь | Любовь это совсем не понимаю, а все это было в самом деле стало быть, всем понимает, |
-| 3 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
-| 4 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
-| 5 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
+| 1 | ~1 | Любовь это | Любовь это веришь. Он мне просто совершилось пред тягимимость и сообразить об избу |
+| 2 | ~0 | Любовь это | Любовь это совсем не понимаю, а все это было в самом деле стало быть, всем понимает |
+| 3 | ~0 | Счастье, это когда я нахожусь в одиночестве самого себя | Счастье, это когда я нахожусь в одиночестве самого себя подавать на себя подлецом и принимаете в этом случае и не помнить по собственному человеку |
+| 4 | ~1 | Счастье, это когда я нахожусь в одиночестве самого себя | Счастье, это когда я нахожусь в одиночестве самого себя. Сама вы ее не ужасно непременно подробному единственно натурально приехать когда поцеловать и мне любезень |
+| 5 | ~1 | Он был один | Он был один и клеле на него, но даже между тем покажу вшеме приходиться, - продолжал наконец видел |
+| 6 | ~0 | Он был один | Он был один из них в нашем преступлении прокурора, который все это произвело в своем роде |
+| 7 | ~0 | Привет, друг | Привет, друг мой, с тобой в этом доме и настойчиво проговорил он вдруг |
+| 8 | ~1 | Привет, друг | Привет, друг и убийство стало быть, природа вашего половину своей совершенно и простодушно |
 
 </div>
 
@@ -81,25 +85,25 @@ project/
 │
 ├── figure/                    # Figures and visualizations
 ├── models/                    # Neural network architectures
-│   ├── tokenConfig/
-|   |   ├── token.json
-|   |   └── vocab.npy
+│   ├── tokenConfig/           # Tokenization vocabulary configuration
+|   |   ├── token.json         # Vocabulary in json
+|   |   └── vocab.npy          # Vocabulary in npy
 |   |
 |   ├── weight/
-|   |   └── model.pth
+|   |   └── model.pth          # Saved Torch model
 |   |
-│   ├── gen.py
-|   └── pipeline.py
+│   ├── gen.py                 # Text generation program using our model
+|   └── pipeline.py            # Model training pipeline
 |
 ├── pre-book/                  # Processed text files / datasets
 |   └── conversion.py
 │
 ├── utils/                     # Utility functions
-|    ├── BytePair.py
-|    ├── CharTokenize.py
-|    └── figure.py
+|    ├── BytePair.py           # BPE Tokenization
+|    ├── CharTokenize.py       # Char Tokenization
+|    └── figure.py             # Program for plotting the model training graph
 │
-├── TestCases.ipynb            # Testing notebooks
+├── TestCases.ipynb            # Text generation use cases
 ├── WordVec.ipynb              # Word embeddings experiments
 ├── main.ipynb                 # Main training notebook
 ├── main.py                    # Main training script
