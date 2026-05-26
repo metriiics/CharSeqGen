@@ -12,6 +12,24 @@
 - Идиот
 - Подросток
 
+<style>
+figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   
+  margin: 1em 0;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+figcaption {
+  text-align: center;    
+  margin-top: 0.5em;
+  font-style: italic;
+}
+</style>
+
 <figure>
 <img src="/figure/InOut.jpg" alt="figure example target input">
 <figcaption>Fig. 1. Пример смещения Input and Target</figcaption>
