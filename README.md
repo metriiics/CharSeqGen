@@ -1,42 +1,25 @@
 # CharSeqGen
 
-Проект посимвольной генерации по книгам Достоевского Фёдора Михайловича. 
+A project for character-level text generation based on the books of Fyodor Mikhailovich Dostoevsky.
 
 ### Context
 
-В проект используются следующие книги автора:
+The project uses the following books by the author:
+- Crime and Punishment
+- The Brothers Karamazov
+- Demons
+- The Idiot
+- The Adolescent
 
-- Преступление и наказание
-- Братья Карамазовы
-- Бесы
-- Идиот
-- Подросток
-
-<style>
-figure {
-  display: flex;
-  flex-direction: column;
-  align-items: center;   
-  margin: 1em 0;
-}
-img {
-  max-width: 100%;
-  height: auto;
-}
-figcaption {
-  text-align: center;    
-  margin-top: 0.5em;
-  font-style: italic;
-}
-</style>
+The dataset contains $6.588.976$ examples. The training data for the model is prepared using a shifting (offset) scheme. The text is split into fragments of 65 characters: the first 64 characters form the input sequence, and the last 64 characters form the target variable. Thus, the fragments are shifted relative to each other, as shown in the figure below.
 
 <figure>
 <img src="/figure/InOut.jpg" alt="figure example target input">
-<figcaption>Fig. 1. Пример смещения Input and Target</figcaption>
 </figure>
 
-
 ### Architecture
+
+The model architecture includes:
 
 ```mermaid
 flowchart TD
@@ -72,7 +55,6 @@ flowchart TD
 
 <figure>
 <img src="/figure/train_loss.png" alt="figure training loss">
-<figcaption>Fig. 2. Train-Loss</figcaption>
 </figure>
 
 
