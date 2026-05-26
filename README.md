@@ -39,6 +39,8 @@ flowchart TD
 
 ### Estimated
 
+We use CrossEntropyLoss as the loss function. The results achieved are shown below.
+
 <div align="center">
 
 | Epoch | Loss |
@@ -53,10 +55,24 @@ flowchart TD
 
 </div>
 
+As well as the training graph.
+
 <figure>
 <img src="/figure/train_loss.png" alt="figure training loss">
 </figure>
 
+
+<div align="center">
+
+| № | temp | Input | Output |
+|---|---|---|---|
+| 1 | ~0 | Любовь это | Любовь это веришь. Он мне просто совершилось пред тягимимость и сообразить об избу. |
+| 2 | ~1.2 | Любовь это веришь | Любовь это совсем не понимаю, а все это было в самом деле стало быть, всем понимает, |
+| 3 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
+| 4 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
+| 5 | ~1.2 | Любовь это сильно чувство | Любовь это сильно чувство |
+
+</div>
 
 ### Structure
 
